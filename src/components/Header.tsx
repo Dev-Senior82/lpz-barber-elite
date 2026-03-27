@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
-import logo from "@/assets/lpz-logo.png";
+import logo from "../assets/lpz-logo.png";
 
 export default function Header() {
   return (
