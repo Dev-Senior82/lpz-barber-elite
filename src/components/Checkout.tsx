@@ -5,6 +5,10 @@ import { useStore } from "@/lib/store";
 import { Input } from "@/components/ui/input";
 import { QRCodeSVG } from "qrcode.react";
 import { Calendar, Clock, Scissors, Phone, User, ExternalLink, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export default function Checkout() {
   const store = useStore();
@@ -14,8 +18,37 @@ export default function Checkout() {
     currentStep, setStep, totalPrice, totalDuration, productsTotal, grandTotal, reset,
   } = store;
 
-  const handleConfirm = () => {
-    setStep("confirmed");
+  const queryClient = useQueryClient();
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleConfirm = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("appointments").insert({
+        customer_name: customerName,
+        customer_whatsapp: customerWhatsApp,
+        appointment_date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+        appointment_time: selectedTime || "",
+        services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price })),
+        products: selectedProducts.map(p => ({ id: p.id, name: p.name, price: p.price })),
+        total_price: grandTotal(),
+      });
+      if (error) {
+        if (error.code === "23505") {
+          toast.error("Este horário já foi reservado! Escolha outro.");
+        } else {
+          toast.error("Erro ao agendar. Tente novamente.");
+        }
+        setSubmitting(false);
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["booked-slots"] });
+      setStep("confirmed");
+    } catch {
+      toast.error("Erro ao agendar.");
+    }
+    setSubmitting(false);
   };
 
   const whatsappMessage = encodeURIComponent(
@@ -30,7 +63,7 @@ export default function Checkout() {
     ? `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("LPZ Barber - Agendamento")}&dates=${format(selectedDate, "yyyyMMdd")}T${selectedTime.replace(":", "")}00/${format(selectedDate, "yyyyMMdd")}T${selectedTime.replace(":", "")}00&details=${encodeURIComponent(`Serviços: ${selectedServices.map(s => s.name).join(", ")}`)}`
     : "#";
 
-  const pixPayload = `00020126360014BR.GOV.BCB.PIX0114+5511999999999520400005303986540${grandTotal().toFixed(2)}5802BR5913LPZ BARBER6009SAO PAULO62070503***6304`;
+  const pixPayload = `00020126580014BR.GOV.BCB.PIX0136828299964091715204000053039865802BR5913LOS SANTOS6009ARAPIRACA62070503***6304`;
 
   if (currentStep === "confirmed") {
     return (
@@ -68,12 +101,12 @@ export default function Checkout() {
             <Calendar size={16} /> Salvar no Google Calendar
             <ExternalLink size={12} />
           </a>
-          <a
-            href={`https://wa.me/5511999999999?text=${whatsappMessage}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-green-600 text-white text-sm font-medium"
-          >
+            <a
+              href={`https://wa.me/5582996409171?text=${whatsappMessage}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[hsl(142_71%_35%)] text-foreground text-sm font-medium"
+            >
             <Phone size={16} /> Enviar via WhatsApp
           </a>
           <button
@@ -183,10 +216,10 @@ export default function Checkout() {
       {/* Confirm CTA */}
       <button
         onClick={handleConfirm}
-        disabled={!customerName || !customerWhatsApp || selectedServices.length === 0 || !selectedDate || !selectedTime}
+        disabled={submitting || !customerName || !customerWhatsApp || selectedServices.length === 0 || !selectedDate || !selectedTime}
         className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-display text-xl tracking-wider disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-[0_0_30px_hsl(45_100%_50%/0.3)] transition-all"
       >
-        CONFIRMAR HORÁRIO
+        {submitting ? "AGENDANDO..." : "CONFIRMAR HORÁRIO"}
       </button>
     </motion.section>
   );

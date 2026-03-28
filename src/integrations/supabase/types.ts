@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          created_at: string
+          customer_name: string
+          customer_whatsapp: string
+          id: string
+          products: Json
+          services: Json
+          status: string
+          total_price: number
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          created_at?: string
+          customer_name: string
+          customer_whatsapp: string
+          id?: string
+          products?: Json
+          services?: Json
+          status?: string
+          total_price?: number
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          created_at?: string
+          customer_name?: string
+          customer_whatsapp?: string
+          id?: string
+          products?: Json
+          services?: Json
+          status?: string
+          total_price?: number
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean
