@@ -18,8 +18,37 @@ export default function Checkout() {
     currentStep, setStep, totalPrice, totalDuration, productsTotal, grandTotal, reset,
   } = store;
 
-  const handleConfirm = () => {
-    setStep("confirmed");
+  const queryClient = useQueryClient();
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleConfirm = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("appointments").insert({
+        customer_name: customerName,
+        customer_whatsapp: customerWhatsApp,
+        appointment_date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+        appointment_time: selectedTime || "",
+        services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price })),
+        products: selectedProducts.map(p => ({ id: p.id, name: p.name, price: p.price })),
+        total_price: grandTotal(),
+      });
+      if (error) {
+        if (error.code === "23505") {
+          toast.error("Este horário já foi reservado! Escolha outro.");
+        } else {
+          toast.error("Erro ao agendar. Tente novamente.");
+        }
+        setSubmitting(false);
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["booked-slots"] });
+      setStep("confirmed");
+    } catch {
+      toast.error("Erro ao agendar.");
+    }
+    setSubmitting(false);
   };
 
   const whatsappMessage = encodeURIComponent(
