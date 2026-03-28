@@ -1,18 +1,18 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useServices";
 import { useProducts } from "@/hooks/useProducts";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogOut, Save, Plus, Trash2, Scissors, ShoppingBag } from "lucide-react";
+import { LogOut, Save, Plus, Trash2, Scissors, ShoppingBag, Camera, Upload, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import logo from "../assets/lpz-logo.png";
 
-type Tab = "services" | "products";
+type Tab = "services" | "products" | "photos";
 
 export default function AdminDashboard() {
   const { signOut, isAdmin, loading: authLoading } = useAuth();
