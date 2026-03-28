@@ -1,11 +1,25 @@
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
-import { services } from "@/lib/data";
+import { useServices } from "@/hooks/useServices";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export default function ServiceGrid() {
   const { selectedServices, toggleService } = useStore();
+  const { data: services = [], isLoading } = useServices();
+
+  if (isLoading) {
+    return (
+      <section className="px-5 py-8">
+        <h2 className="font-display text-3xl text-foreground mb-6">SERVIÇOS</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 rounded-xl bg-card border border-border animate-pulse" />
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="px-5 py-8">
@@ -19,7 +33,7 @@ export default function ServiceGrid() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
-              onClick={() => toggleService(service)}
+              onClick={() => toggleService({ id: service.id, name: service.name, duration: service.duration, price: Number(service.price), icon: service.icon })}
               className={cn(
                 "relative flex flex-col items-start p-4 rounded-xl border transition-all text-left",
                 isSelected
@@ -33,7 +47,7 @@ export default function ServiceGrid() {
                 <Clock size={12} /> {service.duration} min
               </span>
               <span className="mt-3 inline-block bg-foreground text-background text-xs font-bold px-3 py-1 rounded-full">
-                R$ {service.price.toFixed(2)}
+                R$ {Number(service.price).toFixed(2)}
               </span>
               {isSelected && (
                 <motion.div
