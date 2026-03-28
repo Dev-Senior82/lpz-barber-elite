@@ -2,19 +2,30 @@ import { motion } from "framer-motion";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useStore } from "@/lib/store";
-import { timeSlots, bookedSlots } from "@/lib/data";
+import { timeSlots } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function DateTimeSelector() {
   const { selectedDate, setDate, selectedTime, setTime } = useStore();
   const today = new Date();
   const days = Array.from({ length: 7 }, (_, i) => addDays(today, i));
 
-  const selectedDayIndex = selectedDate
-    ? Math.round((selectedDate.getTime() - today.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24))
-    : -1;
+  const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
-  const booked = bookedSlots[String(selectedDayIndex)] || [];
+  const { data: bookedTimes = [] } = useQuery({
+    queryKey: ["booked-slots", dateStr],
+    queryFn: async () => {
+      if (!dateStr) return [];
+      const { data } = await supabase
+        .from("appointments")
+        .select("appointment_time")
+        .eq("appointment_date", dateStr);
+      return (data || []).map((r: any) => r.appointment_time);
+    },
+    enabled: !!dateStr,
+  });
 
   return (
     <motion.section
@@ -59,7 +70,7 @@ export default function DateTimeSelector() {
           <p className="text-sm text-muted-foreground mb-3">Horários disponíveis:</p>
           <div className="grid grid-cols-4 gap-2">
             {timeSlots.map((slot) => {
-              const isBooked = booked.includes(slot);
+              const isBooked = bookedTimes.includes(slot);
               const isSelected = selectedTime === slot;
               return (
                 <button
@@ -69,7 +80,7 @@ export default function DateTimeSelector() {
                   className={cn(
                     "py-2.5 rounded-lg text-sm font-medium transition-all border",
                     isBooked
-                      ? "bg-secondary/50 text-muted-foreground/30 border-transparent cursor-not-allowed"
+                      ? "bg-secondary/50 text-muted-foreground/30 border-transparent cursor-not-allowed line-through"
                       : isSelected
                         ? "bg-primary text-primary-foreground border-primary shadow-[0_0_15px_hsl(45_100%_50%/0.3)]"
                         : "bg-card border-border text-foreground hover:border-primary/50"

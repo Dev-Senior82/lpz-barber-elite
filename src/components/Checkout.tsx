@@ -5,6 +5,10 @@ import { useStore } from "@/lib/store";
 import { Input } from "@/components/ui/input";
 import { QRCodeSVG } from "qrcode.react";
 import { Calendar, Clock, Scissors, Phone, User, ExternalLink, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export default function Checkout() {
   const store = useStore();
