@@ -101,12 +101,12 @@ export default function Checkout() {
             <Calendar size={16} /> Salvar no Google Calendar
             <ExternalLink size={12} />
           </a>
-          <a
-            href={`https://wa.me/5511999999999?text=${whatsappMessage}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-green-600 text-white text-sm font-medium"
-          >
+            <a
+              href={`https://wa.me/5582996409171?text=${whatsappMessage}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[hsl(142_71%_35%)] text-foreground text-sm font-medium"
+            >
             <Phone size={16} /> Enviar via WhatsApp
           </a>
           <button
