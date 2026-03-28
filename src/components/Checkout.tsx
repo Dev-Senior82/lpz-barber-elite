@@ -216,10 +216,10 @@ export default function Checkout() {
       {/* Confirm CTA */}
       <button
         onClick={handleConfirm}
-        disabled={!customerName || !customerWhatsApp || selectedServices.length === 0 || !selectedDate || !selectedTime}
+        disabled={submitting || !customerName || !customerWhatsApp || selectedServices.length === 0 || !selectedDate || !selectedTime}
         className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-display text-xl tracking-wider disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-[0_0_30px_hsl(45_100%_50%/0.3)] transition-all"
       >
-        CONFIRMAR HORÁRIO
+        {submitting ? "AGENDANDO..." : "CONFIRMAR HORÁRIO"}
       </button>
     </motion.section>
   );
