@@ -30,7 +30,7 @@ export default function Checkout() {
     ? `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("LPZ Barber - Agendamento")}&dates=${format(selectedDate, "yyyyMMdd")}T${selectedTime.replace(":", "")}00/${format(selectedDate, "yyyyMMdd")}T${selectedTime.replace(":", "")}00&details=${encodeURIComponent(`Serviços: ${selectedServices.map(s => s.name).join(", ")}`)}`
     : "#";
 
-  const pixPayload = `00020126360014BR.GOV.BCB.PIX0114+5511999999999520400005303986540${grandTotal().toFixed(2)}5802BR5913LPZ BARBER6009SAO PAULO62070503***6304`;
+  const pixPayload = `00020126580014BR.GOV.BCB.PIX0136828299964091715204000053039865802BR5913LOS SANTOS6009ARAPIRACA62070503***6304`;
 
   if (currentStep === "confirmed") {
     return (
