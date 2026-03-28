@@ -68,13 +68,21 @@ export default function AdminDashboard() {
         >
           <ShoppingBag size={16} /> Produtos
         </button>
+        <button
+          onClick={() => setTab("photos")}
+          className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${tab === "photos" ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
+        >
+          <Camera size={16} /> Fotos
+        </button>
       </div>
 
       <div className="px-5 py-6">
         {tab === "services" ? (
           <ServiceEditor services={services} loading={sLoading} queryClient={queryClient} />
-        ) : (
+        ) : tab === "products" ? (
           <ProductEditor products={products} loading={pLoading} queryClient={queryClient} />
+        ) : (
+          <PhotoEditor queryClient={queryClient} />
         )}
       </div>
     </div>
