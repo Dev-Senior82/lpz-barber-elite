@@ -53,6 +53,30 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          sort_order: number
+          storage_path: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          sort_order?: number
+          storage_path: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          sort_order?: number
+          storage_path?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean
