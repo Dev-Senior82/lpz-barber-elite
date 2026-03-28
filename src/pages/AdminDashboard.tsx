@@ -294,3 +294,111 @@ function ProductEditor({ products, loading, queryClient }: { products: any[]; lo
     </div>
   );
 }
+
+function PhotoEditor({ queryClient }: { queryClient: any }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const { data: photos = [], isLoading } = useQuery({
+    queryKey: ["portfolio-photos"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("portfolio_photos")
+        .select("*")
+        .order("sort_order");
+      return data || [];
+    },
+  });
+
+  const getPublicUrl = (path: string) => {
+    const { data } = supabase.storage.from("portfolio").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+
+    for (const file of Array.from(files)) {
+      const ext = file.name.split(".").pop();
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage.from("portfolio").upload(path, file);
+      if (uploadError) {
+        toast.error(`Erro ao enviar ${file.name}`);
+        continue;
+      }
+
+      const { error: dbError } = await supabase.from("portfolio_photos").insert({
+        storage_path: path,
+        sort_order: photos.length,
+      });
+      if (dbError) toast.error("Erro ao salvar registro");
+    }
+
+    toast.success("Fotos enviadas!");
+    queryClient.invalidateQueries({ queryKey: ["portfolio-photos"] });
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const deletePhoto = async (photo: any) => {
+    await supabase.storage.from("portfolio").remove([photo.storage_path]);
+    const { error } = await supabase.from("portfolio_photos").delete().eq("id", photo.id);
+    if (error) { toast.error("Erro ao deletar"); return; }
+    toast.success("Foto removida!");
+    queryClient.invalidateQueries({ queryKey: ["portfolio-photos"] });
+  };
+
+  if (isLoading) return <p className="text-muted-foreground text-sm">Carregando...</p>;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-display text-2xl text-foreground">FOTOS</h2>
+        <Button
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="gap-1"
+        >
+          <Upload size={14} /> {uploading ? "Enviando..." : "Enviar"}
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={handleUpload}
+        />
+      </div>
+
+      {photos.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <Camera size={48} className="mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Nenhuma foto ainda. Envie fotos dos seus cortes!</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        {photos.map((photo: any) => (
+          <motion.div key={photo.id} layout className="relative group rounded-xl overflow-hidden border border-border aspect-square">
+            <img
+              src={getPublicUrl(photo.storage_path)}
+              alt={photo.caption || "Portfolio"}
+              className="w-full h-full object-cover"
+            />
+            <button
+              onClick={() => deletePhoto(photo)}
+              className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+            >
+              <X size={14} />
+            </button>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
